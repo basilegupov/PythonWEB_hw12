@@ -1,11 +1,10 @@
 from fastapi import APIRouter, HTTPException, Depends, status, Path, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List
 
 from src.database.db import get_db
 from src.entity.models import User
 from src.repository import contacts as repositories_contacts
-from src.schemas.contact import ContactSchema, ContactUpdateSchema, ContactResponse, ContactBirthdayResponse
+from src.schemas.contact import ContactSchema, ContactUpdateSchema, ContactResponse
 from src.services.auth import auth_service
 
 router = APIRouter(prefix='/contacts', tags=['contacts'])
@@ -19,9 +18,10 @@ async def get_contacts(limit: int = Query(10, ge=10, le=500), offset: int = Quer
     return contacts
 
 
-@router.get("/birthdays", response_model=List[ContactBirthdayResponse])
+@router.get("/birthdays", response_model=list[ContactResponse])
 async def get_upcoming_birthdays_route(db: AsyncSession = Depends(get_db),
                                        current_user: User = Depends(auth_service.get_current_user)):
+    print(f"Route {current_user}")
     birthdays = await repositories_contacts.get_upcoming_birthdays(current_user, db)
     return birthdays
 

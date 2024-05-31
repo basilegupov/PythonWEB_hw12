@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.entity.models import Contact, User
-from src.schemas.contact import ContactSchema, ContactUpdateSchema, ContactBirthdayResponse
+from src.schemas.contact import ContactSchema, ContactUpdateSchema, ContactResponse
 
 
 async def get_contacts(limit: int, offset: int, user: User, db: AsyncSession, search: Optional[str] = None):
@@ -64,9 +64,7 @@ async def get_upcoming_birthdays(user: User, db: AsyncSession):
         if not birthday:
             return None
         today = datetime.now().date()
-        #     # print(type(self.birthday.value))
         birthday = datetime.strptime(birthday, "%Y-%m-%d").date()
-        #
         next_birthday = datetime(today.year, birthday.month, birthday.day).date()
         if today > next_birthday:
             next_birthday = datetime(today.year + 1, birthday.month, birthday.day).date()
@@ -80,23 +78,21 @@ async def get_upcoming_birthdays(user: User, db: AsyncSession):
     #     func.date_part('day', Contact.birthday) >= today.day,
     #     func.date_part('day', Contact.birthday) <= end_date.day
     # )
-    stmt = select(Contact).filter(
-        Contact.user_id == user.id)
-    # .filter(
-    #     Contact.birthday <= end_date
-    # ))
-
+    stmt = select(Contact).filter(Contact.user_id == user.id)
     contacts = await db.execute(stmt)
     birthdays = contacts.scalars().all()
-    upcoming_birthdays = [ContactBirthdayResponse(
+    upcoming_birthdays = [ContactResponse(
         id=contact.id,
         first_name=contact.first_name,
         last_name=contact.last_name,
         email=contact.email,
         phone_number=contact.phone_number,
         birthday=contact.birthday,
-        additional_data=contact.additional_data
+        additional_data=contact.additional_data,
+        created_at=contact.created_at,
+        updated_at=contact.updated_at,
+        user=contact.user
     ) for contact in birthdays if days_to_birthday(str(contact.birthday)) <= 7]
-    # for contact in upcoming_birthdays:
-    #     print(days_to_birthday(str(contact.birthday)))
+    for contact in upcoming_birthdays:
+        print(days_to_birthday(str(contact.birthday)))
     return upcoming_birthdays

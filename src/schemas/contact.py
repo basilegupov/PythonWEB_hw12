@@ -1,4 +1,3 @@
-from typing import List
 from datetime import date, datetime
 
 from pydantic import BaseModel, EmailStr, Field
@@ -27,14 +26,3 @@ class ContactResponse(ContactSchema):
 
     class Config:
         from_attributes = True
-
-
-class ContactBirthdayResponse(ContactResponse):
-    pass
-
-    class Config:
-        from_attributes = True
-
-
-class UpcomingBirthdaysResponse(BaseModel):
-    upcoming_birthdays: List[ContactBirthdayResponse]
